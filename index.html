@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="OsyFly software turns Axis PTZ cameras into drone sensors. AI detection from 30 pixels, coordinates and altitude without radar, automatic PTZ slewing on cued targets. Software only — no new hardware." />
+<meta name="keywords" content="Axis PTZ drone detection, OsyFly software, counter-drone video analytics, ochrana měkkých cílů drony" />
+<meta property="og:title" content="OsyFly × Axis · Turn Your PTZ Camera Into a Drone Sensor" />
+<meta property="og:description" content="OsyFly's AI software runs alongside Axis PTZ cameras. Detect, classify, and track drones from 30 pixels — without radar. Live demo at the 10th Soft Targets Defence Conference, ČZU Praha, 21 May 2026." />
+<title>OsyFly × Axis · Drone Detection for PTZ Cameras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;0,800;0,900;1,800&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:          #07090d;
+    --surface:     #0b0e14;
+    --card:        #0e1219;
+    --card2:       #13181f;
+    --border:      rgba(255,255,255,0.07);
+    --border2:     rgba(255,255,255,0.12);
+    --accent:      #f5d84a;
+    --accent-dim:  rgba(245,216,74,0.10);
+    --accent-mid:  rgba(245,216,74,0.20);
+    --axis-red:    #E50019;
+    --text:        #d8e0eb;
+    --muted:       #4e5a6a;
+    --label:       #7d8fa4;
+    --white:       #eef2f7;
+
+    --font-display: 'Barlow', -apple-system, sans-serif;
+    --font-body:    'Barlow', -apple-system, sans-serif;
+    --font-mono:    'Inconsolata', 'SF Mono', Menlo, monospace;
+
+    --maxw:    1440px;
+    --gutter:  60px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--muted); }
+  ::selection { background: var(--accent); color: var(--bg); }
+
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 26px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+  h1 { font-size: clamp(54px, 7.5vw, 88px); }
+  h2 { font-size: clamp(36px, 4.2vw, 60px); line-height: 0.85; }
+  h3 { font-size: 18px; font-weight: 800; letter-spacing: 0.04em; }
+  h4 { font-size: 14px; font-weight: 800; letter-spacing: 0.04em; }
+
+  p { color: var(--label); max-width: 62ch; line-height: 1.7; font-weight: 300; }
+  .yl { color: var(--accent); }
+  .dim { color: rgba(238, 242, 247, 0.20); }
+  .mono { font-family: var(--font-mono); }
+
+  .container {
+    width: 100%;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    position: relative;
+    z-index: 3;
+  }
+  section { position: relative; z-index: 3; }
+
+  /* ---- Top banner ---- */
+  .topbanner {
+    position: relative;
+    z-index: 10;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 11px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+  }
+  .topbanner::before {
+    content: "▮";
+    color: var(--bg);
+    animation: blink 1.4s ease-in-out infinite;
+    font-size: 12px;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .topbanner a { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ---- Nav ---- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px var(--gutter);
+    background: rgba(7, 9, 13, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--white);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--label);
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .lang {
+    display: inline-flex;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--border2);
+  }
+  .lang button {
+    background: transparent; border: 0; color: var(--label);
+    padding: 6px 10px; cursor: pointer; font: inherit;
+    letter-spacing: inherit; text-transform: inherit;
+  }
+  .lang button.active { background: var(--accent); color: var(--bg); }
+  .lang button:hover:not(.active) { color: var(--white); }
+
+  /* ---- Buttons ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: opacity 0.2s, color 0.2s, background 0.2s, border-color 0.2s;
+    white-space: nowrap;
+    background: transparent;
+  }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary { border-color: var(--border2); color: var(--white); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-compact { padding: 9px 22px; font-size: 12px; }
+  .btn-ghost {
+    color: var(--label); font-weight: 400; letter-spacing: 0.05em;
+    text-transform: none; padding: 0; font-size: 13px;
+  }
+  .btn-ghost:hover { color: var(--accent); }
+  .btn-ghost::after { content: "↓"; font-size: 17px; margin-left: 4px; }
+  .arrow { transition: transform 0.2s; display: inline-block; }
+  .btn:hover .arrow { transform: translateX(3px); }
+
+  /* ---- HERO ---- */
+  .hero {
+    min-height: calc(100vh - 64px - 38px);
+    padding: 64px 0 88px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: 20%; right: -20%;
+    width: 900px; height: 900px;
+    background: radial-gradient(circle, var(--accent-dim) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 64px;
+    align-items: center;
+    min-height: 600px;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 48px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .hero-meta .coord { display: flex; gap: 24px; }
+  .hero-meta .live {
+    color: var(--accent);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-meta .live::before {
+    content: "▮";
+    color: var(--accent);
+    animation: blink 1.4s ease-in-out infinite;
+    font-size: 11px;
+  }
+  .hero h1 { margin-bottom: 32px; }
+  .hero-sub {
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--label);
+    max-width: 56ch;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+  .hero-ctas { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 56px; }
+  .hero-specs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    max-width: 640px;
+  }
+  .spec-item { padding: 28px; border-right: 1px solid var(--border); }
+  .spec-item:last-child { border-right: 0; }
+  .spec-item .spec-val {
+    font-family: var(--font-display);
+    font-size: 44px; font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+    display: block;
+  }
+  .spec-item .spec-val .unit { color: var(--accent); font-size: 22px; margin-left: 2px; }
+  .spec-item .spec-lab {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.14em;
+    display: block;
+  }
+
+  /* ---- HUD ---- */
+  .hud {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(135deg, #0a0d12 0%, #131820 50%, #0a0d12 100%);
+    border: 1px solid var(--border2);
+    overflow: hidden;
+  }
+  .hud-frame {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(245, 216, 74, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(245, 216, 74, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .hud-crosshair {
+    position: absolute; top: 50%; left: 50%;
+    width: 80%; height: 80%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed rgba(245, 216, 74, 0.12);
+  }
+  .hud-crosshair::before, .hud-crosshair::after {
+    content: ""; position: absolute; background: rgba(245, 216, 74, 0.15);
+  }
+  .hud-crosshair::before { top: 50%; left: 0; right: 0; height: 1px; }
+  .hud-crosshair::after { top: 0; bottom: 0; left: 50%; width: 1px; }
+  .hud-corner { position: absolute; width: 16px; height: 16px; border: 2px solid var(--accent); }
+  .hud-corner.tl { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+  .hud-corner.tr { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
+  .hud-corner.bl { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
+  .hud-corner.br { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+  .hud-scanline {
+    position: absolute; left: 0; right: 0; height: 120px;
+    background: linear-gradient(to bottom, transparent 0%, rgba(245, 216, 74, 0.07) 50%, transparent 100%);
+    animation: scan 4.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes scan {
+    0% { top: -120px; }
+    100% { top: 100%; }
+  }
+  .hud-readout {
+    position: absolute;
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--label);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    line-height: 1.7;
+  }
+  .hud-readout .v { color: var(--accent); }
+  .hud-readout.tl { top: 32px; left: 32px; }
+  .hud-readout.tr { top: 32px; right: 32px; text-align: right; }
+  .hud-readout.br { bottom: 32px; right: 32px; text-align: right; }
+  .hud-readout.bl { bottom: 32px; left: 32px; }
+  .hud-subject {
+    position: absolute;
+    top: 38%; left: 58%;
+    transform: translate(-50%, -50%);
+  }
+  .hud-drone { width: 72px; opacity: 0.85; }
+  .detbox {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140px; height: 110px;
+    animation: drift 6s ease-in-out infinite;
+  }
+  @keyframes drift {
+    0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
+    25%      { transform: translate(-50%, -50%) translate(-6px, 4px); }
+    50%      { transform: translate(-50%, -50%) translate(4px, -2px); }
+    75%      { transform: translate(-50%, -50%) translate(-3px, -5px); }
+  }
+  .detbox-corner { position: absolute; width: 14px; height: 14px; border: 2px solid var(--accent); }
+  .detbox-corner.tl { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+  .detbox-corner.tr { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+  .detbox-corner.bl { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+  .detbox-corner.br { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+  .det-label {
+    position: absolute; top: -28px; left: 0;
+    background: var(--accent); color: var(--bg);
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    padding: 4px 8px; letter-spacing: 0.08em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .hud-ticker {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.6);
+    border-top: 1px solid rgba(245, 216, 74, 0.3);
+    padding: 8px 12px;
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--label); letter-spacing: 0.08em;
+    white-space: nowrap; overflow: hidden;
+  }
+  .hud-ticker-track {
+    display: inline-block;
+    animation: ticker 32s linear infinite;
+    padding-left: 100%;
+  }
+  .hud-ticker-track span { color: var(--accent); padding: 0 18px; }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* ---- Co-brand strip ---- */
+  .cobrand {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 40px 0;
+  }
+  .cobrand-inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .cobrand-block {
+    display: flex; align-items: center; gap: 18px;
+  }
+  .cobrand-block.right { justify-content: flex-end; }
+  .cobrand-mark {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--white);
+    line-height: 1;
+  }
+  .cobrand-mark span { color: var(--accent); }
+  .cobrand-axis {
+    display: block;
+    width: 160px;
+    height: auto;
+    line-height: 1;
+  }
+  .cobrand-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .cobrand-x {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 24px;
+    color: var(--accent);
+  }
+
+  /* ---- Section shell ---- */
+  .sec {
+    padding: 110px 0;
+    border-top: 1px solid var(--border);
+  }
+  .sec-head {
+    margin-bottom: 72px;
+    max-width: 760px;
+  }
+  .sec-head h2 { margin-bottom: 18px; }
+  .sec-head p { font-size: 16px; color: var(--label); max-width: 56ch; }
+
+  /* ---- Architecture diagram ---- */
+  .arch-sec { background: var(--bg); }
+  .arch-stage {
+    background: var(--card);
+    border: 1px solid var(--border2);
+    padding: 56px 32px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-stage::before {
+    content: "ARCHITECTURE";
+    position: absolute;
+    top: 18px; left: 22px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+  }
+  .arch-stage::after {
+    content: "OSY FLY × AXIS";
+    position: absolute;
+    top: 18px; right: 22px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+  }
+  .arch-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+  .arch-legend {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 40px;
+  }
+  .arch-leg {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+  .arch-leg-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .arch-leg h4 {
+    color: var(--white);
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .arch-leg p {
+    font-size: 12px;
+    color: var(--label);
+    line-height: 1.55;
+  }
+
+  /* ---- Capabilities (was valprop) ---- */
+  .valprop {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .valprop-col {
+    padding: 36px 32px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .valprop-col:hover { border-color: var(--border2); background: var(--card2); }
+  .valprop-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 28px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .valprop-num::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .valprop h3 {
+    font-size: 20px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.02em;
+    color: var(--white); margin-bottom: 16px;
+    line-height: 1.15;
+  }
+  .valprop p { font-size: 14px; color: var(--label); line-height: 1.7; }
+
+  /* ---- Flow ---- */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    position: relative;
+  }
+  .flow::before {
+    content: "";
+    position: absolute;
+    top: 48px; left: 12.5%; right: 12.5%;
+    height: 1px;
+    background: linear-gradient(to right, var(--border) 0%, var(--accent) 25%, var(--accent) 75%, var(--border) 100%);
+    opacity: 0.5;
+  }
+  .flow-step {
+    text-align: center;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+  }
+  .flow-node {
+    width: 96px; height: 96px;
+    margin: 0 auto 32px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .flow-node::before, .flow-node::after {
+    content: ""; position: absolute;
+    width: 8px; height: 8px;
+    border: 1px solid var(--accent);
+  }
+  .flow-node::before { top: -4px; left: -4px; border-right: 0; border-bottom: 0; }
+  .flow-node::after { bottom: -4px; right: -4px; border-left: 0; border-top: 0; }
+  .flow-node svg { width: 36px; height: 36px; stroke: var(--accent); }
+  .flow-step-label {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--accent);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .flow-step h4 {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 18px;
+    color: var(--white); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .flow-step p { color: var(--label); font-size: 14px; margin: 0 auto; }
+  .flow-intro {
+    max-width: 68ch;
+    margin-bottom: 80px;
+    color: var(--label);
+    font-size: 17px;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  /* ---- Specs ---- */
+  .specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+  .spec-row {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    padding: 28px 32px;
+    border-bottom: 1px solid var(--border);
+    gap: 24px;
+    align-items: baseline;
+  }
+  .specs > .spec-row:nth-last-child(-n+2) { border-bottom: 0; }
+  .specs > .spec-row:nth-child(odd) { border-right: 1px solid var(--border); }
+  .spec-key {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.18em;
+  }
+  .spec-val-text {
+    color: var(--text); font-size: 14px;
+    line-height: 1.65; font-weight: 300;
+  }
+
+  /* ---- FAQ ---- */
+  .faq { display: flex; flex-direction: column; gap: 10px; }
+  .faq-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.25s;
+  }
+  .faq-item.open { border-color: rgba(245, 216, 74, 0.25); }
+  .faq-q {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 20px;
+    padding: 24px 32px;
+    cursor: pointer;
+    align-items: center;
+  }
+  .faq-q:hover .faq-text { color: var(--accent); }
+  .faq-num {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--accent);
+    letter-spacing: 0.12em;
+  }
+  .faq-text {
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 15px;
+    color: var(--white); text-transform: uppercase;
+    letter-spacing: 0.04em; line-height: 1.35;
+    transition: color 0.2s;
+  }
+  .faq-toggle {
+    font-family: var(--font-mono);
+    font-size: 20px; color: var(--muted);
+    transition: transform 0.3s, color 0.2s;
+    line-height: 1;
+  }
+  .faq-item.open .faq-toggle { transform: rotate(45deg); color: var(--accent); }
+  .faq-a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.4s ease;
+    padding: 0 32px 0 80px;
+  }
+  .faq-item.open .faq-a {
+    max-height: 460px;
+    padding: 0 32px 28px 80px;
+  }
+  .faq-a p { color: var(--label); font-size: 14px; line-height: 1.85; max-width: 72ch; font-weight: 300; }
+  .faq-a strong { color: var(--white); font-weight: 600; }
+
+  /* ---- Laplace Dome (bottom platform section) ---- */
+  .dome-sec { background: var(--bg); }
+  .dome-head { margin-bottom: 56px; max-width: 820px; }
+  .dome-head h2 { margin-bottom: 22px; }
+  .dome-head p {
+    font-size: 16px;
+    color: var(--label);
+    line-height: 1.85;
+    max-width: 65ch;
+    margin-bottom: 12px;
+  }
+  .dome-head p:last-child { margin-bottom: 0; }
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .product-mod {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 32px 24px;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    display: block;
+    color: inherit;
+  }
+  .product-mod:hover {
+    border-color: rgba(245,216,74,0.4);
+    background: var(--card2);
+    transform: translateY(-2px);
+  }
+  .product-mod:hover .product-mod-name { color: var(--accent); }
+  .product-mod .comp-icon {
+    width: 42px; height: 42px;
+    margin: 0 auto 16px;
+    display: block;
+  }
+  .product-mod-name {
+    font-family: var(--font-display);
+    font-weight: 900; font-size: 18px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--white); margin-bottom: 8px;
+    transition: color 0.2s;
+  }
+  .product-mod-role {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .product-mod-desc {
+    font-size: 13px;
+    color: var(--label);
+    line-height: 1.6;
+  }
+  .product-mod.featured {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, var(--accent-dim) 0%, transparent 100%);
+  }
+  .product-mod.featured .product-mod-tag {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    font-weight: 500;
+  }
+  .product-mod { position: relative; }
+  .dome-link {
+    margin-top: 32px;
+    text-align: center;
+  }
+  .dome-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 4px;
+    transition: opacity 0.2s;
+  }
+  .dome-link a:hover { opacity: 0.75; }
+
+  /* ---- CTA ---- */
+  .finalcta {
+    padding: 130px 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .finalcta::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 50% 70% at 30% 50%, rgba(245, 216, 74, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .finalcta-inner {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 80px;
+    align-items: end;
+    position: relative;
+  }
+  .finalcta h2 {
+    margin-bottom: 24px;
+    font-size: clamp(40px, 5vw, 68px);
+  }
+  .finalcta p {
+    font-size: 16px; line-height: 1.8;
+    margin-bottom: 40px; font-weight: 300;
+  }
+  .finalcta-ctas { display: flex; gap: 16px; flex-wrap: wrap; }
+  .finalcta-side {
+    border-left: 1px solid var(--border);
+    padding-left: 40px;
+  }
+  .finalcta-side dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+  .finalcta-side dt { color: var(--muted); text-transform: uppercase; }
+  .finalcta-side dd { color: var(--white); }
+
+  /* ---- Footer ---- */
+  footer { background: var(--bg); padding: 40px 0; }
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 40px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .foot-logo {
+    font-family: var(--font-display);
+    font-weight: 900; font-size: 18px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--white);
+  }
+  .foot-logo span { color: var(--accent); }
+  .footer-links { display: flex; gap: 28px; list-style: none; }
+  .footer-links a {
+    font-family: var(--font-mono);
+    font-size: 12px; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-meta {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ---- Reveal ---- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 1100px) {
+    :root { --gutter: 32px; }
+    nav { padding: 16px 32px; }
+  }
+  @media (max-width: 1024px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+    .hud { max-width: 560px; }
+    .cobrand-inner { grid-template-columns: 1fr; gap: 24px; text-align: center; }
+    .cobrand-block, .cobrand-block.right { justify-content: center; flex-direction: column; }
+    .arch-legend { grid-template-columns: repeat(2, 1fr); }
+    .valprop { grid-template-columns: 1fr; }
+    .products-grid { grid-template-columns: repeat(2, 1fr); }
+    .flow { grid-template-columns: repeat(2, 1fr); row-gap: 64px; }
+    .flow::before { display: none; }
+    .specs { grid-template-columns: 1fr; }
+    .specs .spec-row:nth-child(odd) { border-right: 0; }
+    .specs > .spec-row:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
+    .specs > .spec-row:last-child { border-bottom: 0; }
+    .finalcta-inner { grid-template-columns: 1fr; gap: 48px; }
+    .finalcta-side { border-left: 0; border-top: 1px solid var(--border); padding-left: 0; padding-top: 32px; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 640px) {
+    :root { --gutter: 20px; }
+    nav { padding: 14px 20px; }
+    .sec { padding: 80px 0; }
+    .hero { padding: 40px 0 60px; }
+    .flow { grid-template-columns: 1fr; }
+    .products-grid { grid-template-columns: 1fr; }
+    .arch-legend { grid-template-columns: 1fr; }
+    .arch-stage { padding: 56px 16px 32px; }
+    .hero-specs { grid-template-columns: 1fr; }
+    .spec-item { border-right: 0; border-bottom: 1px solid var(--border); }
+    .spec-item:last-child { border-bottom: 0; }
+    .hero-sub { font-size: 16px; }
+    .topbanner { font-size: 10px; padding: 9px 16px; gap: 8px; text-align: center; }
+    .faq-q { grid-template-columns: 30px 1fr auto; gap: 16px; padding: 20px 22px; }
+    .faq-a, .faq-item.open .faq-a { padding-left: 22px; padding-right: 22px; }
+    .faq-item.open .faq-a { padding-bottom: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====================== TOP BANNER ====================== -->
+<div class="topbanner">
+  <span>Meet us at Konferencia Ochrana měkkých cílů · ČZU Praha · 21 May 2026</span>
+  <span style="opacity:0.6;">//</span>
+  <a href="#cta">Book a meeting</a>
+</div>
+
+<!-- ====================== NAV ====================== -->
+<nav>
+  <a href="#" class="nav-logo">OSY<span>FLY</span></a>
+  <ul class="nav-links">
+    <li><a href="#architecture">How it fits</a></li>
+    <li><a href="#capabilities">Capabilities</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#specs">Specs</a></li>
+    <li><a href="#dome">Laplace Dome</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="lang" role="group" aria-label="Language">
+      <button class="active" data-lang="en">EN</button>
+      <button data-lang="cz">CZ</button>
+    </div>
+    <a href="#cta" class="btn btn-primary btn-compact">Book a demo</a>
+  </div>
+</nav>
+
+<!-- ====================== HERO ====================== -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-meta">
+      <div class="coord">
+        <span>N 50.1305°</span>
+        <span>E 14.3739°</span>
+        <span>ČZU PRAHA · CZ</span>
+      </div>
+      <div class="live">LIVE DEMO · 21 MAY 2026</div>
+    </div>
+
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow">Software for Axis PTZ cameras · OsyFly</div>
+        <h1>
+          Turn your<br />
+          <span class="yl">Axis PTZ camera</span><br />
+          into a <span class="dim">drone sensor.</span>
+        </h1>
+        <p class="hero-sub">
+          OsyFly's AI software runs on a small NVIDIA edge unit alongside your Axis cameras. It detects drones from 30 pixels, classifies the type, computes coordinates and altitude — and slews the camera onto the threat. No new sensors. No camera replacements. Software only.
+        </p>
+        <div class="hero-ctas">
+          <a href="#cta" class="btn btn-primary">Book a demo <span class="arrow">→</span></a>
+          <a href="#architecture" class="btn btn-ghost">See the architecture</a>
+        </div>
+        <div class="hero-specs">
+          <div class="spec-item">
+            <span class="spec-val">30<span class="unit">px</span></span>
+            <span class="spec-lab">Detection threshold</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-val">&lt;1<span class="unit">s</span></span>
+            <span class="spec-lab">Edge latency</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-val">3<span class="unit">×</span></span>
+            <span class="spec-lab">UAV classes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- HUD visualisation -->
+      <div class="hud" aria-hidden="true">
+        <div class="hud-frame"></div>
+        <div class="hud-crosshair"></div>
+        <div class="hud-corner tl"></div>
+        <div class="hud-corner tr"></div>
+        <div class="hud-corner bl"></div>
+        <div class="hud-corner br"></div>
+        <div class="hud-scanline"></div>
+
+        <div class="hud-readout tl">
+          AXIS PTZ · <span class="v">SLEW LOCKED</span><br />
+          FPS · <span class="v">30.0</span><br />
+          PIX · <span class="v">42 × 38</span>
+        </div>
+        <div class="hud-readout tr">
+          OSY FLY <span class="v">v4.2</span><br />
+          EDGE · <span class="v">ORIN NX</span><br />
+          MODE · <span class="v">RADAR-FREE</span>
+        </div>
+        <div class="hud-readout bl">
+          AZ <span class="v">247.3°</span><br />
+          EL <span class="v">+12.8°</span><br />
+          ALT <span class="v">62 M AGL</span>
+        </div>
+        <div class="hud-readout br">
+          RANGE <span class="v">247 M</span><br />
+          VEL <span class="v">14.2 M/S NE</span><br />
+          TYPE <span class="v">MULTIROTOR</span>
+        </div>
+
+        <div class="hud-subject">
+          <svg class="hud-drone" viewBox="0 0 100 100" fill="none" stroke="#f5d84a" stroke-width="1.5">
+            <line x1="18" y1="18" x2="40" y2="40"/>
+            <line x1="82" y1="18" x2="60" y2="40"/>
+            <line x1="18" y1="82" x2="40" y2="60"/>
+            <line x1="82" y1="82" x2="60" y2="60"/>
+            <rect x="40" y="40" width="20" height="20" rx="2"/>
+            <ellipse cx="18" cy="18" rx="12" ry="3" opacity="0.6"/>
+            <ellipse cx="82" cy="18" rx="12" ry="3" opacity="0.6"/>
+            <ellipse cx="18" cy="82" rx="12" ry="3" opacity="0.6"/>
+            <ellipse cx="82" cy="82" rx="12" ry="3" opacity="0.6"/>
+            <circle cx="50" cy="50" r="3" fill="#f5d84a" stroke="none"/>
+          </svg>
+
+          <div class="detbox">
+            <div class="detbox-corner tl"></div>
+            <div class="detbox-corner tr"></div>
+            <div class="detbox-corner bl"></div>
+            <div class="detbox-corner br"></div>
+            <div class="det-label">MULTIROTOR · 98.4%</div>
+          </div>
+        </div>
+
+        <div class="hud-ticker">
+          <div class="hud-ticker-track">
+            0743Z AXIS PTZ FEED · MULTIROTOR DETECTED · 30PX<span>·</span>0821Z PTZ SLEW · LOCKED ON TRACK<span>·</span>0915Z FIXED-WING CLASSIFIED · 247M<span>·</span>1002Z ALTITUDE COMPUTED · 62M AGL · NO RADAR<span>·</span>1148Z TRACK CONTINUOUS · NE 14.2M/S<span>·</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== ARCHITECTURE SCHEME ====================== -->
+<section class="sec arch-sec" id="architecture">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">§ 02 · How it fits together</div>
+      <h2>Camera. Software. <span class="yl">Drone.</span></h2>
+      <p>The Axis PTZ camera streams video to a small NVIDIA edge unit running OsyFly's software. The software detects and classifies the drone, computes its coordinates and altitude, and slews the camera back onto the track. An optional radar feed lets the software cue the camera before the drone is even in frame.</p>
+    </div>
+
+    <div class="arch-stage reveal">
+      <svg class="arch-svg" viewBox="0 0 1120 460" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#f5d84a"/>
+          </marker>
+          <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#7d8fa4"/>
+          </marker>
+        </defs>
+
+        <!-- ========== BOX 1: AXIS PTZ CAMERA ========== -->
+        <g transform="translate(40, 80)">
+          <!-- Box outline -->
+          <rect x="0" y="0" width="240" height="240" fill="#0e1219" stroke="#33333d" stroke-width="1"/>
+          <!-- Box label -->
+          <text x="20" y="28" font-family="Inconsolata,monospace" font-size="10" letter-spacing="2.5" fill="#7d8fa4">▮ NODE 01</text>
+          <!-- Axis logo (official) -->
+          <svg x="20" y="42" width="110" height="40" viewBox="0 0 200 72">
+            <g fill="#eef2f7">
+              <path d="m83.6 12.2h9.9c0.1 0 0.1 0.1 0.1 0.1v42.7c0 0.1-0.1 0.1-0.1 0.1h-9.9c-0.1 0-0.1-0.1-0.1-0.1v-42.6c0-0.1 0.1-0.2 0.1-0.2z"/>
+              <path d="m80.4 12.2c0.1 0 0.1 0.1 0.1 0.2l-13 21.1c-0.1 0.2-0.1 0.4 0 0.6l13 20.9c0.1 0.1 0 0.2 0 0.2h-12.2c-0.1 0-0.2-0.1-0.3-0.2l-7.9-12.9c-0.1-0.1-0.2-0.1-0.2 0l-7.4 12.9c-0.1 0.1-0.2 0.2-0.3 0.2h-11.5c-0.1 0-0.2 0-0.1-0.2l13.5-22c0.1-0.2 0.1-0.5 0-0.7l-11.8-19.9c0-0.1 0-0.2 0.1-0.2h11.8c0.1 0 0.2 0.1 0.2 0.2l7.1 12c0.1 0.1 0.2 0.1 0.3 0l7.3-12c0.1-0.1 0.1-0.2 0.3-0.2h11z"/>
+              <path d="m37 12.2h-9.2c-0.1 0-0.2 0.1-0.3 0.2l-27.5 42.7v0.1h11.2c0.1 0 0.2 0 0.2-0.1l3.7-5.8c0.1-0.1 0.1-0.1 0.2-0.1h11.7c0.1 0 0.1 0.1 0.1 0.1v5.7c0 0.1 0 0.2 0.1 0.2h9.8c0.1 0 0.1-0.1 0.1-0.2v-42.6c0-0.1 0-0.2-0.1-0.2zm-9.7 28.5v0l-7.3 0.1s-0.1 0 0-0.1l7.7-12.3c0-0.1 0.1 0 0.1 0l-0.5 12.3z"/>
+              <path d="m99.4 55.2h12.9c1.6 0 3.3-0.3 4.9-0.8 6-1.9 9.1-7.8 9.1-12.9 0-8.1-6.3-10.9-13.8-14.1-1.3-0.6-2.9-1.3-2.9-3.1s1.7-2.7 3.6-2.7h10.2c0.1 0 0.1-0.1 0.1-0.1v-9.3c0-0.1-0.1-0.1-0.1-0.1h-10.7c-8.9 0-14.2 5.3-14.2 12.7 0 6.5 4.1 9.6 10.1 12 4.2 1.7 6.9 2.4 6.9 5.8 0 1.8-1.1 3.5-3.3 3.5h-12.9c-0.1 0-0.1 0.1-0.1 0.1v9h0.2z"/>
+              <path d="m131.9 12c-2 0-3.6 1.6-3.6 3.6s1.6 3.6 3.6 3.6 3.6-1.6 3.6-3.6-1.6-3.6-3.6-3.6zm0 6.8c-1.8 0-3.2-1.5-3.2-3.2 0-1.8 1.5-3.2 3.2-3.2 1.8 0 3.2 1.5 3.2 3.2s-1.4 3.2-3.2 3.2z"/>
+              <path d="m133.6 17.6-0.8-1.9c0.5-0.1 0.8-0.6 0.8-1.1 0-0.4-0.2-0.7-0.4-0.9-0.3-0.2-0.6-0.3-1-0.3h-1.6v4.2h0.5v-1.8h1.2l0.8 1.8h0.5zm-2.5-2.2v-1.5h1c0.2 0 0.4 0 0.6 0.1s0.3 0.3 0.3 0.6c0 0.2-0.1 0.4-0.2 0.5-0.2 0.2-0.4 0.2-0.7 0.2h-1z"/>
+              <path d="m8.6 71.2c-1.2 0.6-2.1 0.8-3.3 0.8-3.3 0-5-2.1-5-4.3s1.9-4.3 5.2-4.3c1.2 0 2.3 0.2 3.1 0.7v1.9c-0.9-0.5-1.9-0.9-3-0.9-1.8 0-3.1 1.1-3.1 2.5 0 1.5 1.3 2.6 3.1 2.6 1.1 0 1.9-0.3 3.1-0.9v1.9z"/>
+              <path d="m21 72c-3.2 0-4.9-2.2-4.9-4.3 0-2 1.7-4.3 4.9-4.3s4.9 2.3 4.9 4.3c0 2.2-1.8 4.3-4.9 4.3zm0-6.8c-1.6 0-2.7 1-2.7 2.5s1.1 2.5 2.7 2.5 2.7-1 2.7-2.5-1.1-2.5-2.7-2.5z"/>
+              <path d="m40.7 63.6h1.9v8.4h-2.1v-5.2l-2.3 2.6h-0.3l-2.3-2.6v5.2h-2.1v-8.4h1.9l2.8 3.1 2.5-3.1z"/>
+              <path d="m58.4 63.6h1.9v8.4h-2.1v-5.2l-2.3 2.6h-0.3l-2.3-2.6v5.2h-2.3v-8.4h1.9l2.8 3.1 2.7-3.1z"/>
+              <path d="m76.6 63.6v4.7c0 2.8-1.9 3.7-4.3 3.7-2.5 0-4.3-1.1-4.3-3.7v-4.8h2.1v4.8c0 1.2 0.9 1.9 2.1 1.9 1.1 0 2.2-0.6 2.2-2.1v-4.7h2.2z"/>
+              <path d="m93.2 71.9h-1.8l-4.8-5.4v5.4h-2.1v-8.4h2l4.6 5.1v-5.1h2.1v8.4z"/>
+              <path d="m103.5 71.9h-2.1v-8.4h2.1v8.4z"/>
+              <path d="m118.9 71.2c-1.2 0.6-2.1 0.8-3.4 0.8-3.3 0-5-2.1-5-4.3s1.9-4.3 5.2-4.3c1.2 0 2.3 0.2 3.1 0.7v1.9c-0.9-0.5-1.9-0.9-3-0.9-1.8 0-3.1 1.1-3.1 2.5 0 1.5 1.3 2.6 3.1 2.6 1.1 0 1.9-0.3 3.1-0.9v1.9z"/>
+              <path d="m134.3 71.9h-2.3l-0.7-1.7h-3.8l-0.6 1.7h-2.3l3.5-8.4h2.5l3.7 8.4zm-5-6.4-1.3 3.2h2.6l-1.3-3.2z"/>
+              <path d="m146.9 65.1h-3.1v6.8h-2.1v-6.8h-3.1v-1.5h8.4v1.5z"/>
+              <path d="m155.6 71.9h-2.1v-8.4h2.1v8.4z"/>
+              <path d="m167 72c-3.2 0-4.9-2.2-4.9-4.3 0-2 1.7-4.3 4.9-4.3s4.9 2.3 4.9 4.3c0 2.2-1.8 4.3-4.9 4.3zm0-6.8c-1.6 0-2.7 1-2.7 2.5s1.1 2.5 2.7 2.5 2.7-1 2.7-2.5-1.1-2.5-2.7-2.5z"/>
+              <path d="m187 71.9h-1.8l-4.8-5.4v5.4h-2.1v-8.4h2l4.6 5.1v-5.1h2.1v8.4z"/>
+              <path d="m199.5 65.7c-1.2-0.5-2-0.7-2.7-0.7-0.8 0-1.3 0.3-1.3 0.7 0 1.3 4.4 0.9 4.4 3.8 0 1.6-1.4 2.5-3.3 2.5-1.5 0-2.2-0.4-3.1-0.8v-1.8c1.2 0.8 2 1.1 2.9 1.1 0.8 0 1.3-0.3 1.3-0.8 0-1.4-4.4-0.9-4.4-3.9 0-1.4 1.3-2.4 3.3-2.4 1 0 1.8 0.2 2.9 0.6v1.7z"/>
+              <polygon points="162.4 34.1 158.8 34.1 172.4 55.2 175.9 55.2"/>
+            </g>
+            <polygon fill="#FFCC33" points="142.7 34.1 164.6 0 200 55.2 175.9 55.2 162.4 34.1"/>
+            <polygon fill="#FF0033" points="158.8 34.1 172.4 55.2 129.2 55.2 142.7 34.1"/>
+          </svg>
+
+          <!-- PTZ Camera drawing -->
+          <g transform="translate(120, 130)">
+            <!-- Mount arm -->
+            <rect x="-3" y="-44" width="6" height="22" fill="#7d8fa4"/>
+            <rect x="-12" y="-46" width="24" height="6" fill="#7d8fa4"/>
+            <!-- Pendant connector -->
+            <rect x="-8" y="-22" width="16" height="8" fill="#a1a1a8"/>
+            <!-- Dome housing (hemisphere) -->
+            <path d="M -38 -14 Q -38 28 0 28 Q 38 28 38 -14 Z" fill="#13181f" stroke="#f5d84a" stroke-width="1.4"/>
+            <!-- Glass dome rim -->
+            <ellipse cx="0" cy="-14" rx="38" ry="6" fill="none" stroke="#f5d84a" stroke-width="1.2" opacity="0.6"/>
+            <!-- Lens visible inside dome -->
+            <circle cx="6" cy="6" r="14" fill="#0a0d12" stroke="#f5d84a" stroke-width="1.2"/>
+            <circle cx="6" cy="6" r="9" fill="none" stroke="#f5d84a" stroke-width="0.6" opacity="0.6"/>
+            <circle cx="6" cy="6" r="4" fill="#f5d84a" opacity="0.85"/>
+            <!-- Status LED -->
+            <circle cx="-26" cy="14" r="2.5" fill="#f5d84a">
+              <animate attributeName="opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+
+          <!-- Box description -->
+          <text x="20" y="208" font-family="Inconsolata,monospace" font-size="9" letter-spacing="1.5" fill="#7d8fa4">PTZ CAMERA · ONVIF</text>
+          <text x="20" y="224" font-family="Barlow,sans-serif" font-weight="700" font-size="13" fill="#eef2f7">Existing infrastructure</text>
+        </g>
+
+        <!-- ========== BOX 2: OSY FLY SOFTWARE ========== -->
+        <g transform="translate(440, 80)">
+          <!-- Featured box (yellow border) -->
+          <rect x="0" y="0" width="240" height="240" fill="#0e1219" stroke="#f5d84a" stroke-width="1.4"/>
+          <!-- Highlight gradient bar at top -->
+          <rect x="0" y="0" width="240" height="3" fill="#f5d84a"/>
+          <!-- Box label -->
+          <text x="20" y="32" font-family="Inconsolata,monospace" font-size="10" letter-spacing="2.5" fill="#f5d84a">▮ NODE 02</text>
+          <!-- OSYFLY logo -->
+          <text x="20" y="64" font-family="Barlow,sans-serif" font-size="22" font-weight="800" fill="#eef2f7" letter-spacing="1.2">OSY<tspan fill="#f5d84a">FLY</tspan></text>
+
+          <!-- Software box illustration -->
+          <g transform="translate(40, 88)">
+            <!-- Edge unit -->
+            <rect x="0" y="0" width="160" height="80" fill="#13181f" stroke="#f5d84a" stroke-width="0.8" rx="2"/>
+            <!-- Mount holes -->
+            <circle cx="8" cy="8" r="2" fill="#33333d"/>
+            <circle cx="152" cy="8" r="2" fill="#33333d"/>
+            <circle cx="8" cy="72" r="2" fill="#33333d"/>
+            <circle cx="152" cy="72" r="2" fill="#33333d"/>
+            <!-- Inner detail -->
+            <rect x="14" y="16" width="132" height="48" fill="#0a0d12" stroke="#33333d" stroke-width="0.6"/>
+            <!-- Processing chip -->
+            <rect x="60" y="28" width="40" height="24" fill="#0e1219" stroke="#f5d84a" stroke-width="0.8"/>
+            <text x="80" y="42" font-family="Inconsolata,monospace" font-size="6" letter-spacing="1" fill="#f5d84a" text-anchor="middle">NVIDIA</text>
+            <text x="80" y="49" font-family="Inconsolata,monospace" font-size="5" letter-spacing="1" fill="#f5d84a" text-anchor="middle">ORIN NX</text>
+            <!-- Activity LEDs -->
+            <circle cx="22" cy="40" r="1.8" fill="#f5d84a">
+              <animate attributeName="opacity" values="1;0.2;1" dur="0.9s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="138" cy="40" r="1.8" fill="#f5d84a" opacity="0.5">
+              <animate attributeName="opacity" values="0.2;1;0.2" dur="1.4s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+
+          <!-- Capability bullets -->
+          <g font-family="Inconsolata,monospace" font-size="9" letter-spacing="1" fill="#d8e0eb">
+            <text x="20" y="194">▸ Detect &amp; classify (3 UAV types)</text>
+            <text x="20" y="208">▸ Compute coords + altitude</text>
+            <text x="20" y="222">▸ Slew PTZ on cued targets</text>
+          </g>
+        </g>
+
+        <!-- ========== BOX 3: UAV THREAT ========== -->
+        <g transform="translate(840, 80)">
+          <rect x="0" y="0" width="240" height="240" fill="#0e1219" stroke="#33333d" stroke-width="1"/>
+          <text x="20" y="28" font-family="Inconsolata,monospace" font-size="10" letter-spacing="2.5" fill="#7d8fa4">▮ NODE 03</text>
+          <text x="20" y="64" font-family="Barlow,sans-serif" font-size="22" font-weight="800" fill="#eef2f7" letter-spacing="1.2">UAV<tspan fill="#7d8fa4"> THREAT</tspan></text>
+
+          <!-- Drone -->
+          <g transform="translate(120, 150)">
+            <line x1="-32" y1="-32" x2="-12" y2="-12" stroke="#f5d84a" stroke-width="1.4"/>
+            <line x1="32"  y1="-32" x2="12"  y2="-12" stroke="#f5d84a" stroke-width="1.4"/>
+            <line x1="-32" y1="32"  x2="-12" y2="12"  stroke="#f5d84a" stroke-width="1.4"/>
+            <line x1="32"  y1="32"  x2="12"  y2="12"  stroke="#f5d84a" stroke-width="1.4"/>
+            <rect x="-10" y="-10" width="20" height="20" rx="2" fill="none" stroke="#f5d84a" stroke-width="1.4"/>
+            <ellipse cx="-32" cy="-32" rx="13" ry="3" fill="none" stroke="#f5d84a" stroke-width="1" opacity="0.6"/>
+            <ellipse cx="32"  cy="-32" rx="13" ry="3" fill="none" stroke="#f5d84a" stroke-width="1" opacity="0.6"/>
+            <ellipse cx="-32" cy="32"  rx="13" ry="3" fill="none" stroke="#f5d84a" stroke-width="1" opacity="0.6"/>
+            <ellipse cx="32"  cy="32"  rx="13" ry="3" fill="none" stroke="#f5d84a" stroke-width="1" opacity="0.6"/>
+            <circle cx="0" cy="0" r="3" fill="#f5d84a"/>
+            <!-- Detection box around drone -->
+            <g stroke="#f5d84a" stroke-width="1.4" fill="none">
+              <path d="M -45 -45 L -45 -38 M -45 -45 L -38 -45"/>
+              <path d="M 45 -45 L 45 -38 M 45 -45 L 38 -45"/>
+              <path d="M -45 45 L -45 38 M -45 45 L -38 45"/>
+              <path d="M 45 45 L 45 38 M 45 45 L 38 45"/>
+            </g>
+          </g>
+
+          <text x="20" y="208" font-family="Inconsolata,monospace" font-size="9" letter-spacing="1.5" fill="#7d8fa4">CLASSIFIED · TRACKED</text>
+          <text x="20" y="224" font-family="Barlow,sans-serif" font-weight="700" font-size="13" fill="#eef2f7">Multirotor · 98.4%</text>
+        </g>
+
+        <!-- ========== ARROWS ========== -->
+        <!-- Camera → Software (video stream, top) -->
+        <line x1="280" y1="170" x2="440" y2="170" stroke="#f5d84a" stroke-width="1.5" marker-end="url(#arrow-yellow)"/>
+        <text x="360" y="160" font-family="Inconsolata,monospace" font-size="10" letter-spacing="1" fill="#f5d84a" text-anchor="middle">VIDEO STREAM</text>
+        <text x="360" y="184" font-family="Inconsolata,monospace" font-size="8" letter-spacing="1" fill="#7d8fa4" text-anchor="middle">H.264 / H.265 · ONVIF</text>
+
+        <!-- Software → Camera (PTZ control, bottom curved back) -->
+        <path d="M 440 240 Q 360 290 360 290 Q 280 290 280 240" fill="none" stroke="#7d8fa4" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arrow-muted)"/>
+        <text x="360" y="312" font-family="Inconsolata,monospace" font-size="9" letter-spacing="1" fill="#7d8fa4" text-anchor="middle">PTZ CONTROL · SLEW COMMAND</text>
+
+        <!-- Software → UAV (track output) -->
+        <line x1="680" y1="170" x2="840" y2="170" stroke="#f5d84a" stroke-width="1.5" marker-end="url(#arrow-yellow)"/>
+        <text x="760" y="160" font-family="Inconsolata,monospace" font-size="10" letter-spacing="1" fill="#f5d84a" text-anchor="middle">CLASSIFIED TRACK</text>
+        <text x="760" y="184" font-family="Inconsolata,monospace" font-size="8" letter-spacing="1" fill="#7d8fa4" text-anchor="middle">TYPE · COORDS · ALTITUDE</text>
+
+        <!-- ========== OPTIONAL RADAR INPUT ========== -->
+        <g transform="translate(440, 360)">
+          <rect x="0" y="0" width="240" height="56" fill="#0a0d12" stroke="#33333d" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="120" y="22" font-family="Inconsolata,monospace" font-size="9" letter-spacing="2" fill="#7d8fa4" text-anchor="middle">OPTIONAL · RADAR / EXTERNAL SENSOR</text>
+          <text x="120" y="42" font-family="Barlow,sans-serif" font-weight="700" font-size="13" fill="#eef2f7" text-anchor="middle">Coordinate cue input</text>
+        </g>
+        <line x1="560" y1="360" x2="560" y2="320" stroke="#7d8fa4" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arrow-muted)"/>
+        <text x="572" y="343" font-family="Inconsolata,monospace" font-size="8" letter-spacing="1" fill="#7d8fa4">CUED COORDS</text>
+      </svg>
+    </div>
+
+    <div class="arch-legend reveal">
+      <div class="arch-leg">
+        <div class="arch-leg-num">01 · Capture</div>
+        <h4>Axis PTZ camera</h4>
+        <p>Streams video over the existing network — H.264 or H.265, ONVIF compatible.</p>
+      </div>
+      <div class="arch-leg">
+        <div class="arch-leg-num">02 · Process</div>
+        <h4>OsyFly software</h4>
+        <p>Runs on a small NVIDIA Orin edge unit. Detects, classifies, geolocates the target.</p>
+      </div>
+      <div class="arch-leg">
+        <div class="arch-leg-num">03 · Slew</div>
+        <h4>PTZ control loop</h4>
+        <p>Software issues PTZ commands back to the camera. The camera locks onto the track.</p>
+      </div>
+      <div class="arch-leg">
+        <div class="arch-leg-num">04 · Cue (optional)</div>
+        <h4>Radar / external sensor</h4>
+        <p>Feed coordinates from a radar or any other source. The PTZ slews onto the cue automatically.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== CAPABILITIES ====================== -->
+<section class="sec" id="capabilities">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">§ 03 · What the software does</div>
+      <h2>Three jobs the software <span class="yl">does on its own.</span></h2>
+    </div>
+
+    <div class="valprop reveal">
+      <div class="valprop-col">
+        <div class="valprop-num">01 / Sees them early</div>
+        <h3>Detection from just 30 pixels.</h3>
+        <p>The software classifies a drone the moment it appears at 30 pixels across — well before a human operator can resolve it on a screen. Three classes recognised in real time: multirotor, fixed-wing, and airplane-type. Day or night, in weather, against cluttered urban backgrounds.</p>
+      </div>
+      <div class="valprop-col">
+        <div class="valprop-num">02 / Knows where it is</div>
+        <h3>Coordinates and altitude — without radar.</h3>
+        <p>From a single Axis PTZ feed, the software computes the target's coordinates and altitude. By logging this data over the track, it derives average speed and direction of movement. No radar required. If a radar (or any other coordinate source) is on site, the software can use it to slew the PTZ before the drone is even in frame.</p>
+      </div>
+      <div class="valprop-col">
+        <div class="valprop-num">03 / Aims your camera</div>
+        <h3>PTZ slewing on radar or external cues.</h3>
+        <p>The software directs the Axis PTZ camera at the drone using its own detection or external coordinates. Once locked, the PTZ stays on the track continuously — feeding back high-resolution imagery for confirmation, classification, and documentation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== HOW IT WORKS ====================== -->
+<section class="sec" id="how">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">§ 04 · From pixels to actionable intelligence</div>
+      <h2>Four steps from stream <span class="yl">to slewed camera.</span></h2>
+    </div>
+
+    <p class="flow-intro reveal">
+      Your existing Axis PTZ cameras already watch the perimeter. OsyFly's software gives them a new skill: recognising drones from just 30 pixels across. Video is processed on a small NVIDIA edge unit — no cloud, no added latency, no new network load. When a UAV is detected, the software classifies the type, computes its position and altitude, slews the camera onto the track, and pushes the event to your VMS or control room.
+    </p>
+
+    <div class="flow reveal">
+      <div class="flow-step">
+        <div class="flow-node">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="7" width="13" height="10" rx="1"/><path d="M16 10l5-3v10l-5-3"/></svg>
+        </div>
+        <div class="flow-step-label">STEP 01</div>
+        <h4>Detect</h4>
+        <p>Software spots a UAV at 30 pixels — earlier than the operator can.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-node">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        </div>
+        <div class="flow-step-label">STEP 02</div>
+        <h4>Classify</h4>
+        <p>Multirotor, fixed-wing, or airplane-type — identified in real time on the edge.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-node">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+        </div>
+        <div class="flow-step-label">STEP 03</div>
+        <h4>Geolocate</h4>
+        <p>Coordinates, altitude, speed, and heading — computed with or without radar.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-node">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M4 10l8-6 8 6v10H4z"/><path d="M12 4v8M8 12h8"/></svg>
+        </div>
+        <div class="flow-step-label">STEP 04</div>
+        <h4>Slew &amp; alert</h4>
+        <p>Axis PTZ locks onto the track. Alert hits the VMS, control room, or any custom endpoint.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== SPECS ====================== -->
+<section class="sec" id="specs">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">§ 05 · What you need to know</div>
+      <h2>Technical <span class="yl">data sheet.</span></h2>
+    </div>
+
+    <div class="specs reveal">
+      <div class="spec-row">
+        <div class="spec-key">Detection threshold</div>
+        <div class="spec-val-text">Targets recognised from just 30 pixels across — well before a human operator can resolve them on a screen.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">UAV classification</div>
+        <div class="spec-val-text">Three classes recognised in real time: multirotor, fixed-wing, and airplane-type drones. Confidence score reported per detection.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Geolocation</div>
+        <div class="spec-val-text">Coordinates and altitude computed from a single Axis PTZ feed without radar. Average speed and direction logged from track history.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Sensor cueing</div>
+        <div class="spec-val-text">PTZ slewing on radar or external coordinate input. Camera locks onto cued bearings and ranges automatically.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Cameras supported</div>
+        <div class="spec-val-text">Axis PTZ camera family. Any ONVIF-compatible PTZ. H.264 and H.265 streams. Certified-model list on request.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Edge compute</div>
+        <div class="spec-val-text">NVIDIA Jetson Orin family. Up to 4 simultaneous 1080p streams per edge unit. Sub-second detection-to-alert. No cloud round-trip.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Integration</div>
+        <div class="spec-val-text">REST and MQTT APIs. ONVIF events for VMS integration with Genetec, Milestone, and custom platforms. Buffer of up to 5 s to absorb network jitter.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Operating conditions</div>
+        <div class="spec-val-text">Proven in contested, GPS-denied, low-bandwidth environments. Edge processing — no external connectivity required for detection. NATO-compatible interfaces.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== FAQ ====================== -->
+<section class="sec" id="faq">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">§ 06 · Frequently asked</div>
+      <h2>Questions, <span class="yl">answered.</span></h2>
+    </div>
+
+    <div class="faq reveal">
+      <div class="faq-item">
+        <div class="faq-q">
+          <div class="faq-num">Q · 01</div>
+          <div class="faq-text">Do I need to replace my Axis cameras?</div>
+          <div class="faq-toggle">+</div>
+        </div>
+        <div class="faq-a">
+          <p>No. The software works with the Axis PTZ cameras you already have, over standard H.264 / H.265 streams and ONVIF events. You only add a small NVIDIA edge unit per cluster of streams.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">
+          <div class="faq-num">Q · 02</div>
+          <div class="faq-text">Which Axis camera models are supported?</div>
+          <div class="faq-toggle">+</div>
+        </div>
+        <div class="faq-a">
+          <p>The full Axis PTZ family. We tune detection performance against specific Axis models in field deployments — certified-model list available on request. Any ONVIF-compatible PTZ from another vendor is also supported, but Axis is the platform we deploy with most often.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">
+          <div class="faq-num">Q · 03</div>
+          <div class="faq-text">Can the software really detect a UAV at 30 pixels?</div>
+          <div class="faq-toggle">+</div>
+        </div>
+        <div class="faq-a">
+          <p>Yes. The detection threshold is <strong>30 pixels across</strong>, well below what a human operator can resolve on a control-room screen. From there, the software tracks the target and refines the classification — multirotor, fixed-wing, or airplane-type — as it grows in frame.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">
+          <div class="faq-num">Q · 04</div>
+          <div class="faq-text">What if we don't have radar on site?</div>
+          <div class="faq-toggle">+</div>
+        </div>
+        <div class="faq-a">
+          <p>The software computes the drone's coordinates and altitude from the camera feed alone. Tracking over time gives you average speed and direction. If you do bring a radar (or any other coordinate source) later, the software slews the PTZ onto the cued bearing automatically — no reconfiguration.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">
+          <div class="faq-num">Q · 05</div>
+          <div class="faq-text">Does it require an internet connection?</div>
+          <div class="faq-toggle">+</div>
+        </div>
+        <div class="faq-a">
+          <p>No. Detection runs entirely at the edge. Internet is only needed for model updates and optional cloud logging — useful for venues with strict network-isolation policies.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">
+          <div class="faq-num">Q · 06</div>
+          <div class="faq-text">What happens when a drone is detected?</div>
+          <div class="faq-toggle">+</div>
+        </div>
+        <div class="faq-a">
+          <p>The software generates an event with UAV class, confidence score, position, altitude, speed, and a continuous track. The Axis PTZ slews onto the target. Alerts are delivered to your VMS, control room, or custom endpoint via REST, MQTT, or ONVIF.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">
+          <div class="faq-num">Q · 07</div>
+          <div class="faq-text">Is OsyFly an Axis partner?</div>
+          <div class="faq-toggle">+</div>
+        </div>
+        <div class="faq-a">
+          <p>OsyFly's software is built to deploy on the Axis ecosystem. We work directly with Axis integrators and end users to scope sites, configure deployments, and support installations. Distributor and partner-channel terms are available — contact us to discuss.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">
+          <div class="faq-num">Q · 08</div>
+          <div class="faq-text">What is the typical deployment time?</div>
+          <div class="faq-toggle">+</div>
+        </div>
+        <div class="faq-a">
+          <p>Single-site deployments are live within a working day. Multi-site or estate-scale rollouts typically take a few weeks, depending on integration scope and operator training.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== LAPLACE DOME (PLATFORM SECTION) ====================== -->
+<section class="sec dome-sec" id="dome">
+  <div class="container">
+    <div class="dome-head reveal">
+      <div class="eyebrow">§ 07 · The bigger picture</div>
+      <h2>Riemann is one part of <span class="yl">Laplace Dome.</span></h2>
+      <p>The detection software running on your Axis PTZ camera is OsyFly's <strong style="color:var(--white);">Riemann</strong> module — the AI detection and classification layer. It is the entry point to <strong style="color:var(--white);">Laplace Dome</strong>, OsyFly's full counter-drone platform.</p>
+      <p>Laplace Dome closes the loop end-to-end: detect, fuse sensor inputs, decide, intercept. Each module is independently deployable — Riemann alone is a complete drone-detection solution for soft targets — and the platform scales to a full autonomous defence system when the threat profile demands it.</p>
+    </div>
+
+    <div class="products-grid reveal">
+      <a href="#capabilities" class="product-mod featured">
+        <span class="product-mod-tag">This page</span>
+        <svg class="comp-icon" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="22" stroke="#f5d84a" stroke-width="0.8" opacity="0.3"/>
+          <circle cx="24" cy="24" r="14" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
+          <circle cx="24" cy="24" r="6" stroke="#f5d84a" stroke-width="1.2"/>
+          <line x1="24" y1="2" x2="24" y2="46" stroke="#f5d84a" stroke-width="0.5" opacity="0.3"/>
+          <line x1="2" y1="24" x2="46" y2="24" stroke="#f5d84a" stroke-width="0.5" opacity="0.3"/>
+          <line x1="24" y1="24" x2="42" y2="10" stroke="#f5d84a" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="38" cy="13" r="2.5" fill="#f5d84a" opacity="0.9"/>
+          <circle cx="38" cy="13" r="5" stroke="#f5d84a" stroke-width="0.7" opacity="0.5"/>
+        </svg>
+        <div class="product-mod-name">Riemann</div>
+        <div class="product-mod-role">Detection &amp; Classification</div>
+        <div class="product-mod-desc">Real-time drone detection from 30 pixels. Classifies UAV type. Computes coords and altitude. Slews the Axis PTZ camera.</div>
+      </a>
+      <a href="https://osyfly.ai/" class="product-mod">
+        <svg class="comp-icon" viewBox="0 0 48 48" fill="none">
+          <path d="M8 38 L24 10 L40 38" stroke="#f5d84a" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M12 32 L36 32" stroke="#f5d84a" stroke-width="0.7" opacity="0.4"/>
+          <circle cx="24" cy="10" r="2.5" fill="#f5d84a"/>
+          <line x1="24" y1="12" x2="24" y2="38" stroke="#f5d84a" stroke-width="0.6" stroke-dasharray="3,2" opacity="0.5"/>
+          <path d="M20 22 L24 16 L28 22" stroke="#f5d84a" stroke-width="1" stroke-linejoin="round" opacity="0.7"/>
+          <circle cx="24" cy="38" r="2" fill="#f5d84a" opacity="0.4"/>
+        </svg>
+        <div class="product-mod-name">Lagrange</div>
+        <div class="product-mod-role">Autonomous Flight &amp; Guidance</div>
+        <div class="product-mod-desc">AI flight control and terminal guidance for interceptor UAVs. Deployable on any compatible airframe.</div>
+      </a>
+      <a href="https://osyfly.ai/" class="product-mod">
+        <svg class="comp-icon" viewBox="0 0 48 48" fill="none">
+          <rect x="4" y="8" width="12" height="8" rx="1" stroke="#f5d84a" stroke-width="1" opacity="0.7"/>
+          <rect x="4" y="22" width="12" height="8" rx="1" stroke="#f5d84a" stroke-width="1" opacity="0.7"/>
+          <rect x="4" y="36" width="12" height="8" rx="1" stroke="#f5d84a" stroke-width="1" opacity="0.7"/>
+          <line x1="16" y1="12" x2="20" y2="18" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
+          <line x1="16" y1="26" x2="20" y2="24" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
+          <line x1="16" y1="40" x2="20" y2="30" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
+          <rect x="18" y="18" width="12" height="12" rx="1.5" stroke="#f5d84a" stroke-width="1.2" fill="rgba(245,216,74,0.08)"/>
+          <line x1="21" y1="24" x2="27" y2="24" stroke="#f5d84a" stroke-width="1"/>
+          <line x1="24" y1="21" x2="24" y2="27" stroke="#f5d84a" stroke-width="1"/>
+          <line x1="30" y1="24" x2="44" y2="24" stroke="#f5d84a" stroke-width="0.8" opacity="0.7"/>
+          <circle cx="44" cy="24" r="2" fill="#f5d84a"/>
+        </svg>
+        <div class="product-mod-name">Haar</div>
+        <div class="product-mod-role">Integration Core &amp; Command</div>
+        <div class="product-mod-desc">Sensor fusion across cameras, radar, RF, and acoustic. Operator command-and-control interface for the entire system.</div>
+      </a>
+      <a href="https://osyfly.ai/" class="product-mod">
+        <svg class="comp-icon" viewBox="0 0 48 48" fill="none">
+          <rect x="4" y="6" width="40" height="28" rx="2" stroke="#f5d84a" stroke-width="1" opacity="0.6"/>
+          <rect x="8" y="10" width="32" height="20" rx="1" stroke="#f5d84a" stroke-width="0.7" opacity="0.35"/>
+          <path d="M14 26 L18 18 L22 22 L26 14 L30 20 L34 16" stroke="#f5d84a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="26" cy="14" r="2" fill="#f5d84a"/>
+          <line x1="18" y1="34" x2="18" y2="40" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
+          <line x1="30" y1="34" x2="30" y2="40" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
+          <line x1="12" y1="40" x2="36" y2="40" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
+        </svg>
+        <div class="product-mod-name">Itô</div>
+        <div class="product-mod-role">Simulation &amp; Training</div>
+        <div class="product-mod-desc">Photorealistic synthetic environments for operator training, model development, and pre-event drill rehearsal.</div>
+      </a>
+    </div>
+
+    <div class="dome-link reveal">
+      <a href="https://osyfly.ai/" target="_blank" rel="noopener">Explore the full Laplace Dome platform on osyfly.ai →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== FINAL CTA ====================== -->
+<section class="finalcta" id="cta">
+  <div class="container finalcta-inner">
+    <div class="reveal">
+      <div class="eyebrow">§ 08 · Next step</div>
+      <h2>
+        Bring drone defence to<br />
+        <span class="yl">the Axis cameras you already run.</span>
+      </h2>
+      <p>Book a 20-minute technical walkthrough at the conference, or request a 30-day pilot. Our team will help scope the first site — stadium, transport hub, government estate, or anything else with a perimeter and Axis cameras already on the wall.</p>
+      <div class="finalcta-ctas">
+        <a href="mailto:hello@osyfly.ai" class="btn btn-primary">Book a demo <span class="arrow">→</span></a>
+        <a href="mailto:hello@osyfly.ai?subject=Walkthrough%20at%20Konferencia%20Ochrana%20m%C4%9Bkk%C3%BDch%20c%C3%ADl%C5%AF" class="btn btn-secondary">Meet us in Prague <span class="arrow">→</span></a>
+      </div>
+    </div>
+    <div class="finalcta-side reveal">
+      <dl>
+        <dt>Event</dt>         <dd>Konferencia Ochrana měkkých cílů</dd>
+        <dt>Edition</dt>       <dd>10th anniversary</dd>
+        <dt>Date</dt>          <dd>21 May 2026</dd>
+        <dt>Venue</dt>         <dd>Aula ČZU, Praha 6 – Suchdol</dd>
+        <dt>Theme</dt>         <dd>Drones · AI · VR for security</dd>
+        <dt>Demo</dt>          <dd>Live · Axis PTZ + OsyFly software</dd>
+        <dt>Contact</dt>       <dd>hello@osyfly.ai</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== FOOTER ====================== -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="foot-logo">OSY<span>FLY</span></div>
+      <ul class="footer-links">
+        <li><a href="https://osyfly.ai/">osyfly.ai</a></li>
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Terms</a></li>
+        <li><a href="mailto:hello@osyfly.ai">Contact</a></li>
+      </ul>
+    </div>
+    <div class="footer-meta">
+      <span>© 2026 OSY Fly s.r.o. · All rights reserved</span>
+      <span>OSY FLY × AXIS · SOFT TARGETS EDITION</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ====================== CZ OVERLAY ====================== -->
+<div id="czOverlay" style="position:fixed; inset:0; background:rgba(7,9,13,0.92); backdrop-filter:blur(12px); z-index:100; display:none; align-items:center; justify-content:center; padding:24px;">
+  <div style="max-width:440px; border:1px solid var(--border2); padding:40px; background:var(--card);">
+    <div style="font-family:'Inconsolata',monospace; color:var(--accent); font-size:11px; letter-spacing:0.18em; margin-bottom:16px; text-transform:uppercase;">CZ · Localisation</div>
+    <h3 style="font-size:22px; margin-bottom:16px; line-height:1.2;">Česká verze se připravuje.</h3>
+    <p style="margin-bottom:28px;">Připravujeme českou jazykovou verzi pro konferenci Ochrana měkkých cílů. Mezitím si můžete prohlédnout anglickou verzi — náš tým bude v Praze 21. května rád mluvit česky osobně.</p>
+    <button onclick="closeCz()" class="btn btn-primary">Continue in English <span class="arrow">→</span></button>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q');
+    q.addEventListener('click', () => {
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+
+  document.querySelectorAll('.lang button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.lang === 'cz') {
+        document.getElementById('czOverlay').style.display = 'flex';
+      } else {
+        document.querySelectorAll('.lang button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    });
+  });
+  function closeCz() {
+    document.getElementById('czOverlay').style.display = 'none';
+    document.querySelectorAll('.lang button').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === 'en');
+    });
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      document.getElementById('cta').scrollIntoView({behavior:'smooth'});
+    }
+  });
+</script>
+
+</body>
+</html>
