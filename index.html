@@ -913,10 +913,7 @@
     pointer-events: none;
   }
   .finalcta-inner {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 80px;
-    align-items: end;
+    display: block;
     position: relative;
   }
   .finalcta h2 {
@@ -1001,8 +998,6 @@
     .specs .spec-row:nth-child(odd) { border-right: 0; }
     .specs > .spec-row:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
     .specs > .spec-row:last-child { border-bottom: 0; }
-    .finalcta-inner { grid-template-columns: 1fr; gap: 48px; }
-    .finalcta-side { border-left: 0; border-top: 1px solid var(--border); padding-left: 0; padding-top: 32px; }
     .nav-links { display: none; }
   }
   @media (max-width: 900px) {
@@ -1032,13 +1027,6 @@
 </head>
 <body>
 
-<!-- ====================== TOP BANNER ====================== -->
-<div class="topbanner">
-  <span>Meet us at Konferencia Ochrana měkkých cílů · ČZU Praha · 21 May 2026</span>
-  <span style="opacity:0.6;">//</span>
-  <a href="#cta">Book a meeting</a>
-</div>
-
 <!-- ====================== NAV ====================== -->
 <nav>
   <a href="#" class="nav-logo">OSY<span>FLY</span></a>
@@ -1055,7 +1043,7 @@
       <button class="active" data-lang="en">EN</button>
       <button data-lang="cz">CZ</button>
     </div>
-    <a href="#cta" class="btn btn-primary btn-compact">Book a demo</a>
+    <a href="https://osyfly.ai/#contact" class="btn btn-primary btn-compact">Book a demo</a>
   </div>
 </nav>
 
@@ -1074,7 +1062,7 @@
           OsyFly's AI software runs on an NVIDIA edge unit alongside your Axis cameras. It detects drones from 30 pixels, classifies the type, computes coordinates and altitude, and slews the camera onto the threat — then cues an interceptor drone or another effector under our software's guidance. The entire system is operated through our command and control centre.
         </p>
         <div class="hero-ctas">
-          <a href="#cta" class="btn btn-primary">Book a demo <span class="arrow">→</span></a>
+          <a href="https://osyfly.ai/#contact" class="btn btn-primary">Book a demo <span class="arrow">→</span></a>
           <a href="#architecture" class="btn btn-ghost">See the architecture</a>
         </div>
         <div class="hero-specs">
@@ -1163,7 +1151,7 @@
     <div class="sec-head reveal">
       <div class="eyebrow">How it fits together</div>
       <h2>Camera. Software. <span class="yl">Elimination.</span></h2>
-      <p>An Axis PTZ camera sits at the centre of the sensor stack — radar, RF, and acoustic feeds can join it as the deployment grows. OsyFly software fuses every input on an NVIDIA edge unit: <strong style="color:var(--white);">RIEMANN</strong> handles detection and classification, <strong style="color:var(--white);">HAAR</strong> runs sensor fusion and the operator command-and-control centre. Authorised engagement closes the loop — drone neutralised, perimeter held.</p>
+      <p>An Axis PTZ camera sits at the centre of the sensor stack — radar, RF, and acoustic feeds can join it as the deployment grows. OsyFly software splits the workload across two layers: <strong style="color:var(--white);">RIEMANN</strong> runs on an NVIDIA Orin NX edge unit beside the cameras, handling real-time detection and classification. <strong style="color:var(--white);">HAAR</strong> runs on a control-room PC, fusing every sensor feed and powering the operator command-and-control centre. Authorised engagement closes the loop — drone neutralised, perimeter held.</p>
     </div>
 
     <div class="arch-stage reveal">
@@ -1278,7 +1266,7 @@
           <text x="20" y="28" font-family="Inconsolata,monospace" font-size="10" letter-spacing="2.5" fill="#f5d84a">▮ NODE 02 · SOFTWARE</text>
           <!-- OSYFLY SOFTWARE title -->
           <text x="20" y="58" font-family="Barlow,sans-serif" font-size="20" font-weight="800" fill="#eef2f7" letter-spacing="1.2">OSY<tspan fill="#f5d84a">FLY</tspan> SOFTWARE</text>
-          <text x="20" y="74" font-family="Inconsolata,monospace" font-size="9" letter-spacing="1.5" fill="#7d8fa4">EDGE · NVIDIA ORIN NX</text>
+          <text x="20" y="74" font-family="Inconsolata,monospace" font-size="9" letter-spacing="1.5" fill="#7d8fa4">EDGE + CONTROL ROOM</text>
 
           <!-- Module 1: RIEMANN (Detection) -->
           <g transform="translate(20, 96)">
@@ -1396,7 +1384,7 @@
       <div class="arch-leg">
         <div class="arch-leg-num">02 · Detect</div>
         <h4>RIEMANN module</h4>
-        <p>Detects, classifies, and geolocates the target on a small NVIDIA Orin edge unit.</p>
+        <p>Detects, classifies, and geolocates the target on an NVIDIA Orin edge unit.</p>
       </div>
       <div class="arch-leg">
         <div class="arch-leg-num">03 · Decide</div>
@@ -1424,7 +1412,7 @@
       <div class="valprop-col">
         <div class="valprop-num">01 / Sees them early</div>
         <h3>Detection from just 30 pixels.</h3>
-        <p>The software classifies a drone the moment it appears at 30 pixels across — well before a human operator can resolve it on a screen. Three classes recognised in real time: multirotor, fixed-wing, and airplane-type. Day or night, in weather, against cluttered urban backgrounds.</p>
+        <p>The software classifies a drone the moment it appears at 30 pixels across. Three classes recognised in real time: multirotor, fixed-wing, and airplane-type. Day or night, in weather, against cluttered urban backgrounds.</p>
       </div>
       <div class="valprop-col">
         <div class="valprop-num">02 / Knows where it is</div>
@@ -1478,13 +1466,12 @@
         <div class="tier-outcome">Detect &amp; engage</div>
         <div class="tier-range">1<span class="unit">km</span></div>
         <h3>Talk to the UAV.</h3>
-        <p>Adds medium-range RF radar and the HAAR command and control centre, with WarDragon OS in the loop. Detects drones at up to 1 km, intercepts their control link, and lets operators identify the airframe, request telemetry, or issue path-change instructions — non-kinetic engagement, fully supervised.</p>
+        <p>Adds RF radar, SDR, or any sensor that can supply target coordinates, plus the HAAR command and control centre. Detects drones at up to 1 km, intercepts their control link, and lets operators identify the airframe, request telemetry, or issue path-change instructions — non-kinetic engagement, fully supervised.</p>
         <ul class="tier-kit">
           <span class="tier-kit-label">In the kit</span>
           <li>Axis PTZ camera</li>
-          <li>RF radar — up to 1 km</li>
+          <li>RF radar, SDR, or any sensor that provides target coordinates</li>
           <li>HAAR command &amp; control centre</li>
-          <li>WarDragon OS integration</li>
         </ul>
       </div>
 
@@ -1654,22 +1641,10 @@
         Bring drone defence to<br />
         <span class="yl">the Axis cameras you already run.</span>
       </h2>
-      <p>Book a 20-minute technical walkthrough at the conference, or request a 30-day pilot. Our team will help scope the first site — stadium, transport hub, government estate, or anything else with a perimeter and Axis cameras already on the wall.</p>
       <div class="finalcta-ctas">
-        <a href="mailto:hello@osyfly.ai" class="btn btn-primary">Book a demo <span class="arrow">→</span></a>
+        <a href="https://osyfly.ai/#contact" class="btn btn-primary">Book a demo <span class="arrow">→</span></a>
         <a href="mailto:hello@osyfly.ai?subject=Walkthrough%20at%20Konferencia%20Ochrana%20m%C4%9Bkk%C3%BDch%20c%C3%ADl%C5%AF" class="btn btn-secondary">Meet us in Prague <span class="arrow">→</span></a>
       </div>
-    </div>
-    <div class="finalcta-side reveal">
-      <dl>
-        <dt>Event</dt>         <dd>Konferencia Ochrana měkkých cílů</dd>
-        <dt>Edition</dt>       <dd>10th anniversary</dd>
-        <dt>Date</dt>          <dd>21 May 2026</dd>
-        <dt>Venue</dt>         <dd>Aula ČZU, Praha 6 – Suchdol</dd>
-        <dt>Theme</dt>         <dd>Drones · AI · VR for security</dd>
-        <dt>Demo</dt>          <dd>Live · Axis PTZ + OsyFly software</dd>
-        <dt>Contact</dt>       <dd>hello@osyfly.ai</dd>
-      </dl>
     </div>
   </div>
 </section>
@@ -1759,17 +1734,6 @@
           <p>OsyFly's software is built to deploy on the Axis ecosystem. We work directly with Axis integrators and end users to scope sites, configure deployments, and support installations. Distributor and partner-channel terms are available — contact us to discuss.</p>
         </div>
       </div>
-
-      <div class="faq-item">
-        <div class="faq-q">
-          <div class="faq-num">Q · 08</div>
-          <div class="faq-text">What is the typical deployment time?</div>
-          <div class="faq-toggle">+</div>
-        </div>
-        <div class="faq-a">
-          <p>Single-site deployments are live within a working day. Multi-site or estate-scale rollouts typically take a few weeks, depending on integration scope and operator training.</p>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -1781,14 +1745,12 @@
       <div class="foot-logo">OSY<span>FLY</span></div>
       <ul class="footer-links">
         <li><a href="https://osyfly.ai/">osyfly.ai</a></li>
-        <li><a href="#">Privacy</a></li>
-        <li><a href="#">Terms</a></li>
         <li><a href="mailto:hello@osyfly.ai">Contact</a></li>
       </ul>
     </div>
     <div class="footer-meta">
       <span>© 2026 OSY Fly s.r.o. · All rights reserved</span>
-      <span>OSY FLY × AXIS · SOFT TARGETS EDITION</span>
+      <span>OSY FLY × AXIS</span>
     </div>
   </div>
 </footer>
