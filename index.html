@@ -805,7 +805,7 @@
   .faq-a p { color: var(--label); font-size: 14px; line-height: 1.85; max-width: 72ch; font-weight: 300; }
   .faq-a strong { color: var(--white); font-weight: 600; }
 
-  /* ---- Laplace Dome (bottom platform section) ---- */
+  /* ---- LAPLACE DOME (bottom platform section) ---- */
   .dome-sec { background: var(--bg); }
   .dome-head { margin-bottom: 56px; max-width: 820px; }
   .dome-head h2 { margin-bottom: 22px; }
@@ -1047,7 +1047,7 @@
     <li><a href="#capabilities">Capabilities</a></li>
     <li><a href="#setup">Setup</a></li>
     <li><a href="#how">How it works</a></li>
-    <li><a href="#dome">Laplace Dome</a></li>
+    <li><a href="#dome">LAPLACE DOME</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
   <div class="nav-right">
@@ -1163,7 +1163,7 @@
     <div class="sec-head reveal">
       <div class="eyebrow">How it fits together</div>
       <h2>Camera. Software. <span class="yl">Elimination.</span></h2>
-      <p>An Axis PTZ camera sits at the centre of the sensor stack — radar, RF, and acoustic feeds can join it as the deployment grows. OsyFly software fuses every input on an NVIDIA edge unit: <strong style="color:var(--white);">Riemann</strong> handles detection and classification, <strong style="color:var(--white);">Haar</strong> runs sensor fusion and the operator command-and-control centre. Authorised engagement closes the loop — drone neutralised, perimeter held.</p>
+      <p>An Axis PTZ camera sits at the centre of the sensor stack — radar, RF, and acoustic feeds can join it as the deployment grows. OsyFly software fuses every input on an NVIDIA edge unit: <strong style="color:var(--white);">RIEMANN</strong> handles detection and classification, <strong style="color:var(--white);">HAAR</strong> runs sensor fusion and the operator command-and-control centre. Authorised engagement closes the loop — drone neutralised, perimeter held.</p>
     </div>
 
     <div class="arch-stage reveal">
@@ -1280,7 +1280,7 @@
           <text x="20" y="58" font-family="Barlow,sans-serif" font-size="20" font-weight="800" fill="#eef2f7" letter-spacing="1.2">OSY<tspan fill="#f5d84a">FLY</tspan> SOFTWARE</text>
           <text x="20" y="74" font-family="Inconsolata,monospace" font-size="9" letter-spacing="1.5" fill="#7d8fa4">EDGE · NVIDIA ORIN NX</text>
 
-          <!-- Module 1: Riemann (Detection) -->
+          <!-- Module 1: RIEMANN (Detection) -->
           <g transform="translate(20, 96)">
             <rect x="0" y="0" width="240" height="92" fill="#13181f" stroke="#33333d" stroke-width="0.8"/>
             <!-- Module icon: target rings -->
@@ -1300,7 +1300,7 @@
             <text x="60" y="84" font-family="Inconsolata,monospace" font-size="8.5" letter-spacing="0.3" fill="#d8e0eb">▸ Coords + altitude · PTZ slew</text>
           </g>
 
-          <!-- Module 2: Haar (Command & Control) -->
+          <!-- Module 2: HAAR (Command & Control) -->
           <g transform="translate(20, 200)">
             <rect x="0" y="0" width="240" height="92" fill="#13181f" stroke="#33333d" stroke-width="0.8"/>
             <!-- Module icon: C2 / nodes -->
@@ -1371,7 +1371,7 @@
         </g>
 
         <!-- ========== ARROWS ========== -->
-        <!-- Sensors → Software (multi-modal data, mid-band between Riemann and Haar) -->
+        <!-- Sensors → Software (multi-modal data, mid-band between RIEMANN and HAAR) -->
         <line x1="320" y1="252" x2="420" y2="252" stroke="#f5d84a" stroke-width="1.5" marker-end="url(#arrow-yellow)"/>
         <text x="370" y="232" font-family="Inconsolata,monospace" font-size="10" letter-spacing="1" fill="#f5d84a" text-anchor="middle">SENSOR DATA</text>
         <text x="370" y="244" font-family="Inconsolata,monospace" font-size="8" letter-spacing="1" fill="#7d8fa4" text-anchor="middle">VIDEO · RADAR · RF · ACOUSTIC</text>
@@ -1395,12 +1395,12 @@
       </div>
       <div class="arch-leg">
         <div class="arch-leg-num">02 · Detect</div>
-        <h4>Riemann module</h4>
+        <h4>RIEMANN module</h4>
         <p>Detects, classifies, and geolocates the target on a small NVIDIA Orin edge unit.</p>
       </div>
       <div class="arch-leg">
         <div class="arch-leg-num">03 · Decide</div>
-        <h4>Haar — C2 centre</h4>
+        <h4>HAAR — C2 centre</h4>
         <p>Sensor fusion, operator interface, and engagement decision in one command-and-control layer.</p>
       </div>
       <div class="arch-leg">
@@ -1439,7 +1439,7 @@
       <div class="valprop-col">
         <div class="valprop-num">04 / Closes the loop</div>
         <h3>Intercept &amp; eliminate the threat.</h3>
-        <p>Once the operator authorises engagement through Haar — our command and control centre — the software cues an interceptor drone or another effector onto the track. Terminal guidance is handled in software all the way to neutralisation, with the operator supervising at every step.</p>
+        <p>Once the operator authorises engagement through HAAR — our command and control centre — the software cues an interceptor drone or another effector onto the track. Terminal guidance is handled in software all the way to neutralisation, with the operator supervising at every step.</p>
       </div>
     </div>
   </div>
@@ -1466,7 +1466,7 @@
         <ul class="tier-kit">
           <span class="tier-kit-label">In the kit</span>
           <li>Axis PTZ camera</li>
-          <li>OsyFly Riemann software</li>
+          <li>OsyFly RIEMANN software</li>
           <li>NVIDIA Orin NX edge unit</li>
           <li>Recording &amp; event logging</li>
         </ul>
@@ -1477,13 +1477,13 @@
         <div class="tier-num">02 / Medium</div>
         <div class="tier-outcome">Detect &amp; engage</div>
         <div class="tier-range">1<span class="unit">km</span></div>
-        <h3>Talk to the drone.</h3>
-        <p>Adds medium-range RF radar and the Haar command and control centre, with WarDragon OS in the loop. Detects drones at up to 1 km, intercepts their control link, and lets operators identify the airframe, request telemetry, or issue path-change instructions — non-kinetic engagement, fully supervised.</p>
+        <h3>Talk to the UAV.</h3>
+        <p>Adds medium-range RF radar and the HAAR command and control centre, with WarDragon OS in the loop. Detects drones at up to 1 km, intercepts their control link, and lets operators identify the airframe, request telemetry, or issue path-change instructions — non-kinetic engagement, fully supervised.</p>
         <ul class="tier-kit">
           <span class="tier-kit-label">In the kit</span>
           <li>Axis PTZ camera</li>
           <li>RF radar — up to 1 km</li>
-          <li>Haar command &amp; control centre</li>
+          <li>HAAR command &amp; control centre</li>
           <li>WarDragon OS integration</li>
         </ul>
       </div>
@@ -1494,12 +1494,12 @@
         <div class="tier-outcome">Eliminate</div>
         <div class="tier-range">Multi-<span class="unit">km</span></div>
         <h3>Swarm-grade defence.</h3>
-        <p>Full sensor stack — radar, software-defined radio, Axis camera array — fused through Haar. Built for critical infrastructure and swarm threats. Detection, classification, authorised engagement, and kinetic neutralisation in a single integrated loop.</p>
+        <p>Full sensor stack — radar, software-defined radio, Axis camera array — fused through HAAR. Built for critical infrastructure and swarm threats. Detection, classification, authorised engagement, and kinetic neutralisation in a single integrated loop.</p>
         <ul class="tier-kit">
           <span class="tier-kit-label">In the kit</span>
           <li>Radar + SDR (software-defined radio)</li>
           <li>Axis PTZ camera array</li>
-          <li>Haar command &amp; control centre</li>
+          <li>HAAR command &amp; control centre</li>
           <li>Cued effector / interceptor drone</li>
         </ul>
       </div>
@@ -1570,9 +1570,9 @@
   <div class="container">
     <div class="dome-head reveal">
       <div class="eyebrow">The bigger picture</div>
-      <h2>Riemann is one part of <span class="yl">Laplace Dome.</span></h2>
-      <p>The detection software running on your Axis PTZ camera is OsyFly's <strong style="color:var(--white);">Riemann</strong> module — the AI detection and classification layer. It is the entry point to <strong style="color:var(--white);">Laplace Dome</strong>, OsyFly's full counter-drone platform.</p>
-      <p>Laplace Dome closes the loop end-to-end: detect, fuse sensor inputs, decide, intercept. Each module is independently deployable — Riemann alone is a complete drone-detection solution for soft targets — and the platform scales to a full autonomous defence system when the threat profile demands it.</p>
+      <h2>RIEMANN is one part of <span class="yl">LAPLACE DOME.</span></h2>
+      <p>The detection software running on your Axis PTZ camera is OsyFly's <strong style="color:var(--white);">RIEMANN</strong> module — the AI detection and classification layer. It is the entry point to <strong style="color:var(--white);">LAPLACE DOME</strong>, OsyFly's full counter-drone platform.</p>
+      <p>LAPLACE DOME closes the loop end-to-end: detect, fuse sensor inputs, decide, intercept. Each module is independently deployable — RIEMANN alone is a complete drone-detection solution for soft targets — and the platform scales to a full autonomous defence system when the threat profile demands it.</p>
     </div>
 
     <div class="products-grid reveal">
@@ -1588,7 +1588,7 @@
           <circle cx="38" cy="13" r="2.5" fill="#f5d84a" opacity="0.9"/>
           <circle cx="38" cy="13" r="5" stroke="#f5d84a" stroke-width="0.7" opacity="0.5"/>
         </svg>
-        <div class="product-mod-name">Riemann</div>
+        <div class="product-mod-name">RIEMANN</div>
         <div class="product-mod-role">Detection &amp; Classification</div>
         <div class="product-mod-desc">Real-time drone detection from 30 pixels. Classifies UAV type. Computes coords and altitude. Slews the Axis PTZ camera.</div>
       </a>
@@ -1601,7 +1601,7 @@
           <path d="M20 22 L24 16 L28 22" stroke="#f5d84a" stroke-width="1" stroke-linejoin="round" opacity="0.7"/>
           <circle cx="24" cy="38" r="2" fill="#f5d84a" opacity="0.4"/>
         </svg>
-        <div class="product-mod-name">Lagrange</div>
+        <div class="product-mod-name">LAGRANGE</div>
         <div class="product-mod-role">Autonomous Flight &amp; Guidance</div>
         <div class="product-mod-desc">AI flight control and terminal guidance for interceptor UAVs. Deployable on any compatible airframe.</div>
       </a>
@@ -1619,7 +1619,7 @@
           <line x1="30" y1="24" x2="44" y2="24" stroke="#f5d84a" stroke-width="0.8" opacity="0.7"/>
           <circle cx="44" cy="24" r="2" fill="#f5d84a"/>
         </svg>
-        <div class="product-mod-name">Haar</div>
+        <div class="product-mod-name">HAAR</div>
         <div class="product-mod-role">Integration Core &amp; Command</div>
         <div class="product-mod-desc">Sensor fusion across cameras, radar, RF, and acoustic. Operator command-and-control interface for the entire system.</div>
       </a>
@@ -1633,14 +1633,14 @@
           <line x1="30" y1="34" x2="30" y2="40" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
           <line x1="12" y1="40" x2="36" y2="40" stroke="#f5d84a" stroke-width="0.8" opacity="0.5"/>
         </svg>
-        <div class="product-mod-name">Itô</div>
+        <div class="product-mod-name">ITÔ</div>
         <div class="product-mod-role">Simulation &amp; Training</div>
         <div class="product-mod-desc">Photorealistic synthetic environments for operator training, model development, and pre-event drill rehearsal.</div>
       </a>
     </div>
 
     <div class="dome-link reveal">
-      <a href="https://osyfly.ai/" target="_blank" rel="noopener">Explore the full Laplace Dome platform on osyfly.ai →</a>
+      <a href="https://osyfly.ai/" target="_blank" rel="noopener">Explore the full LAPLACE DOME platform on osyfly.ai →</a>
     </div>
   </div>
 </section>
